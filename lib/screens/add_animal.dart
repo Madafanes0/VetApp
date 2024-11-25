@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '/models/animal.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddAnimalScreen extends StatefulWidget {
   @override
@@ -10,12 +10,27 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
+  final _pictureController = TextEditingController();
 
-  void _addAnimal() {
-    // For now, we'll just print the data
-    print('Added Animal: ${_nameController.text}, Age: ${_ageController.text}');
-    Navigator.pop(context); // Go back to the main menu
+  Future<void> _handleAddAnimal() async {
+  if (_formKey.currentState!.validate()) {
+    try {
+      await FirebaseFirestore.instance.collection('animals').add({
+        'name': _nameController.text.trim(),
+        'age': _ageController.text.trim(),
+        'picture': _pictureController.text.trim(),
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Animal added successfully!')),
+      );
+      Navigator.pop(context, true); // Pass `true` to indicate refresh
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error adding animal: $e')),
+      );
+    }
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -27,23 +42,33 @@ class _AddAnimalScreenState extends State<AddAnimalScreen> {
           key: _formKey,
           child: Column(
             children: <Widget>[
+              Text(
+                'Add a New Animal',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Animal Name'),
-                validator: (value) => value!.isEmpty ? 'Enter a name' : null,
+                decoration: InputDecoration(labelText: 'Name'),
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter a name' : null,
               ),
               TextFormField(
                 controller: _ageController,
                 decoration: InputDecoration(labelText: 'Age'),
-                validator: (value) => value!.isEmpty ? 'Enter an age' : null,
+                keyboardType: TextInputType.number,
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter an age' : null,
+              ),
+              TextFormField(
+                controller: _pictureController,
+                decoration: InputDecoration(labelText: 'Image URL'),
+                validator: (value) =>
+                    value!.isEmpty ? 'Please enter an image URL' : null,
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _addAnimal();
-                  }
-                },
+                onPressed: _handleAddAnimal,
                 child: Text('Add Animal'),
               ),
             ],

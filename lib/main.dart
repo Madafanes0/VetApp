@@ -6,8 +6,8 @@ import 'routes.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
-  options: DefaultFirebaseOptions.currentPlatform,
-);
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(MyApp());
 }
 
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'VetApp',
       initialRoute: '/login', // Start with the login screen
-      routes: appRoutes,
+      onGenerateRoute: onGenerateRoute, // Use dynamic routing
     );
   }
 }

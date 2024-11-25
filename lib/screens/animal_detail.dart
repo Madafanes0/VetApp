@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-//test123
+
 class AnimalDetailView extends StatefulWidget {
   final String animalId;
 
@@ -22,8 +22,10 @@ class _AnimalDetailViewState extends State<AnimalDetailView> {
 
   Future<void> fetchAnimalDetails() async {
     try {
-      DocumentSnapshot docSnapshot =
-          await FirebaseFirestore.instance.collection('animals').doc(widget.animalId).get();
+      DocumentSnapshot docSnapshot = await FirebaseFirestore.instance
+          .collection('animals')
+          .doc(widget.animalId)
+          .get();
 
       if (docSnapshot.exists) {
         setState(() {
@@ -46,85 +48,60 @@ class _AnimalDetailViewState extends State<AnimalDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: Text('Animal Details')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 10),
+              Text('Loading animal details...'),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (animalData == null) {
+      return Scaffold(
+        appBar: AppBar(title: Text('Animal Details')),
+        body: Center(
+          child: Text(
+            'Animal not found.',
+            style: TextStyle(fontSize: 18, color: Colors.red),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Animal Details'),
-        backgroundColor: Colors.purple[800],
+      appBar: AppBar(title: Text(animalData!['name'] ?? 'No Name')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            animalData!['picture'] != null
+                ? Image.network(
+                    animalData!['picture'],
+                    width: 200,
+                    height: 200,
+                    fit: BoxFit.cover,
+                  )
+                : Icon(
+                    Icons.image,
+                    size: 100,
+                    color: Colors.grey,
+                  ),
+            SizedBox(height: 20),
+            Text(
+              'Age: ${animalData!['age'] ?? 'Unknown'}',
+              style: TextStyle(fontSize: 18),
+            ),
+          ],
+        ),
       ),
-      body: isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    color: Colors.purple[400],
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Loading...',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.purple[400],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            )
-          : animalData == null
-              ? Center(
-                  child: Text(
-                    'Animal not found',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.red[400],
-                    ),
-                  ),
-                )
-              : Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          animalData!['name'] ?? 'No Name',
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.purple[900],
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          'Age: ${animalData!['age'] ?? 'Unknown'}',
-                          style: TextStyle(
-                            fontSize: 22,
-                            color: Colors.purple[600],
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        animalData!['picture'] != null
-                            ? ClipOval(
-                                child: Image.network(
-                                  animalData!['picture'],
-                                  width: 260,
-                                  height: 260,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Icon(
-                                Icons.image,
-                                size: 100,
-                                color: Colors.grey,
-                              ),
-                      ],
-                    ),
-                  ),
-                ),
     );
   }
 }
